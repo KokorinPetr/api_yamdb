@@ -1,6 +1,9 @@
+from datetime import datetime
+
+# from django.db.models import Avg
 from rest_framework import serializers
 
-from titles.models import Category, Genre, Title, GenreTitle
+from reviews.models import Category, Genre, Title
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -15,28 +18,47 @@ class GenreSerializer(serializers.ModelSerializer):
         fields = ('name', 'slug')
 
 
-class TitleListRetriveserializer(serializers.ModelSerializer):
+class TitleReadOnlySerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     genre = GenreSerializer(many=True, read_only=True)
-    # genre = serializers.SlugRelatedField(slug_field='slug', queryset=Genre.objects.all())
+    rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Title
-        fields = ('id', 'name', 'year', 'description', 'genre', 'category')
+        fields = (
+            'id',
+            'name',
+            'year',
+            'rating',
+            'description',
+            'genre',
+            'category',
+        )
+
+    def get_rating(self, obj):
+        return obj.id
+        # return Title.objects.aggregate(Avg('year'))['year__avg']
 
 
 class TitleSerializer(serializers.ModelSerializer):
-    category = serializers.SlugRelatedField(slug_field='slug', queryset=Category.objects.all())
-    genre = serializers.SlugRelatedField(slug_field='slug', queryset=Genre.objects.all())
+    category = serializers.SlugRelatedField(
+        slug_field='name',
+        queryset=Category.objects.all(),
+    )
+    genre = serializers.SlugRelatedField(
+        slug_field='name',
+        queryset=Genre.objects.all(),
+        many=True,
+    )
 
     class Meta:
         model = Title
         fields = ('id', 'name', 'year', 'description', 'genre', 'category')
 
-    def create(self, validated_data):
-        genres = validated_data.pop('genre')
-        title = Title.objects.create(**validated_data)
-        for genre in genres:
-            current_genre = Genre.objects.get(slug=genre)
-            GenreTitle.objects.create(genre=current_genre, title=title)
-        return title
+    def validate_year(self, value):
+        year = datetime.now().year
+        if value > year:
+            raise serializers.ValidationError(
+                'Нельзя добавлять произведения, которые еще не вышли!',
+            )
+        return value

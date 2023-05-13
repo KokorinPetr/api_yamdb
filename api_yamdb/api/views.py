@@ -1,37 +1,20 @@
-from django.shortcuts import get_object_or_404
-from rest_framework import viewsets, filters, generics, mixins
-from rest_framework.pagination import (
-    LimitOffsetPagination,
-    PageNumberPagination,
-)
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, generics, viewsets
+from rest_framework.pagination import PageNumberPagination
 
 from api.serializers import (
     CategorySerializer,
     GenreSerializer,
+    TitleReadOnlySerializer,
     TitleSerializer,
-    TitleListRetriveserializer,
 )
-from titles.models import Category, Genre, Title
+from reviews.models import Category, Genre, Title
 
-
-# class ListCreateDeleteViewSet(
-#     mixins.CreateModelMixin,
-#     mixins.ListModelMixin,
-#     mixins.DestroyModelMixin,
-#     viewsets.GenericViewSet,
-# ):
-#     pass
-
-# class CategoryViewSet(ListCreateDeleteViewSet):
-#     queryset = Category.objects.all()
-#     serializer_class = CategorySerializer
-#     filter_backends = (filters.SearchFilter,)
-#     search_fields = ('name',)
-#     pagination_class = LimitOffsetPagination
 
 class CategoryListCreateView(generics.ListCreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    pagination_class = PageNumberPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
 
@@ -45,6 +28,7 @@ class CategoryDestroyView(generics.DestroyAPIView):
 class GenreListCreateView(generics.ListCreateAPIView):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
+    pagination_class = PageNumberPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
 
@@ -57,9 +41,11 @@ class GenreDestroyView(generics.DestroyAPIView):
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
-    # serializer_class = TitleSerializer
+    pagination_class = PageNumberPagination
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
 
     def get_serializer_class(self):
-        if self.action == 'list' or 'retrieve':
-            return TitleListRetriveserializer
+        if self.action == 'list' or self.action == 'retrieve':
+            return TitleReadOnlySerializer
         return TitleSerializer
