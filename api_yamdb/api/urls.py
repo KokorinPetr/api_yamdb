@@ -3,10 +3,10 @@ from rest_framework import routers
 
 from api.views import (
     CategoryCreateListDestroyViewSet,
-    GenreCreateListDestroyViewSet,
-    TitleViewSet,
-    ReviewViewSet,
     CommentViewSet,
+    GenreCreateListDestroyViewSet,
+    ReviewViewSet,
+    TitleViewSet,
 )
 
 v1_router = routers.DefaultRouter()
@@ -24,12 +24,12 @@ v1_router.register('titles', TitleViewSet, basename='titles')
 v1_router.register(
     r'titles/(?P<title_id>\d+)/reviews',
     ReviewViewSet,
-    basename='api'
+    basename='api',
 )
 v1_router.register(
     r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
     CommentViewSet,
-    basename='api'
+    basename='api',
 )
 
 urlpatterns = [

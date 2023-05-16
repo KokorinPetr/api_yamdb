@@ -1,18 +1,18 @@
+from django.core.exceptions import PermissionDenied
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, viewsets
 from rest_framework.pagination import PageNumberPagination
-from django.shortcuts import get_object_or_404
-from django.core.exceptions import PermissionDenied
 
 from api.serializers import (
     CategorySerializer,
+    CommentSerializer,
     GenreSerializer,
+    ReviewSerializer,
     TitleReadOnlySerializer,
     TitleSerializer,
-    ReviewSerializer,
-    CommentSerializer,
 )
-from reviews.models import Category, Genre, Title, Review,
+from reviews.models import Category, Genre, Review, Title
 
 
 class CreateListDestroyViewSet(
@@ -67,7 +67,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(
             author=self.request.user,
-            title=self.title
+            title=self.title,
         )
 
     def perform_update(self, serializer):
@@ -87,14 +87,14 @@ class CommentViewSet(viewsets.ModelViewSet):
     @property
     def review_for_comment(self):
         return get_object_or_404(Review, id=self.kwargs.get('review_id'))
-    
+
     def get_queryset(self):
         return self.review_for_comment.comments.all()
 
     def perform_create(self, serializer):
         serializer.save(
             author=self.request.user,
-            review=self.review_for_comment
+            review=self.review_for_comment,
         )
 
     def perform_update(self, serializer):
