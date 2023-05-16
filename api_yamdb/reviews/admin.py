@@ -1,4 +1,5 @@
 from django.contrib import admin
+from .models import Title, Genre, Comment, Category, Review
 
 from reviews.models import Category, Genre, Title
 
@@ -22,3 +23,6 @@ class TitleAdmin(admin.ModelAdmin):
     list_display = ('name', 'year', 'description', 'category')
     search_fields = ('name',)
     empty_value_display = '-пусто-'
+
+admin.site.register(Comment)
+admin.site.register(Review)

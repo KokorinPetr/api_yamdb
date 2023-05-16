@@ -1,9 +1,9 @@
 from datetime import datetime
 
-# from django.db.models import Avg
+from django.db.models import Avg
 from rest_framework import serializers
 
-from reviews.models import Category, Genre, Title
+from reviews.models import Category, Genre, Title, Review, Comment
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -36,11 +36,10 @@ class TitleReadOnlySerializer(serializers.ModelSerializer):
         )
 
     def get_rating(self, obj):
-        return obj.id
-        # review = Review.objects.filter(title=obj.id)
-        # if review.exists() == True:
-        #     return round(review.aggregate(Avg('score'))['score__avg'], 1)
-        # return 0
+        review = Review.objects.filter(title=obj.id)
+        if review.exists() == True:
+            return round(review.aggregate(Avg('score'))['score__avg'], 1)
+        return 0
 
 
 class TitleSerializer(serializers.ModelSerializer):
@@ -65,3 +64,18 @@ class TitleSerializer(serializers.ModelSerializer):
                 'Нельзя добавлять произведения, которые еще не вышли!',
             )
         return value
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        fields = ('__all__')
+        model = Review
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.StringRelatedField(read_only=True)
+
+    class Meta:
+        fields = ('__all__')
+        model = Comment
