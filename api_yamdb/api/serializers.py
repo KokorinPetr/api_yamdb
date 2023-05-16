@@ -85,16 +85,16 @@ class TitleReadOnlySerializer(serializers.ModelSerializer):
         review = Review.objects.filter(title=obj.id)
         if review.exists() is True:
             return round(review.aggregate(Avg('score'))['score__avg'], 1)
-        return 0
+        return None
 
 
 class TitleSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(
-        slug_field='name',
+        slug_field='slug',
         queryset=Category.objects.all(),
     )
     genre = serializers.SlugRelatedField(
-        slug_field='name',
+        slug_field='slug',
         queryset=Genre.objects.all(),
         many=True,
     )
