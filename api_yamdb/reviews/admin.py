@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from reviews.models import Category, Genre, Title
 
-from .models import Category, Comment, Genre, Review, Title
+from .models import Category, Comment, Genre, Review, Title, User
 
 
 @admin.register(Category)
@@ -25,6 +25,24 @@ class TitleAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     empty_value_display = '-пусто-'
 
+admin.site.register(
+    User,
+    list_display=(
+        "username",
+        "email",
+        "role",
+        "bio",
+        "first_name",
+        "last_name",
+        "confirmation_code",
+    ),
+    search_fields=(
+        "username",
+        "role",
+    ),
+    list_filter=("username",),
+    empty_value_display="-пусто-",
+)
 
 admin.site.register(Comment)
 admin.site.register(Review)
