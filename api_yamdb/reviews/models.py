@@ -1,14 +1,13 @@
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from rest_framework.exceptions import ValidationError
-from django.core.validators import MaxValueValidator, MinValueValidator
-
 
 from .validators import validate_username
 
-USER = "user"
-ADMIN = "admin"
-MODERATOR = "moderator"
+USER = 'user'
+ADMIN = 'admin'
+MODERATOR = 'moderator'
 
 ROLE_CHOICES = [
     (USER, USER),
@@ -34,25 +33,29 @@ class User(AbstractUser):
         db_index=True,
     )
     role = models.CharField(
-        "роль", max_length=20, choices=ROLE_CHOICES, default=USER, blank=True
-    )
-    bio = models.TextField(
-        "биография",
+        'роль',
+        max_length=20,
+        choices=ROLE_CHOICES,
+        default=USER,
         blank=True,
     )
-    first_name = models.CharField("имя", max_length=150, blank=True)
-    last_name = models.CharField("фамилия", max_length=150, blank=True)
+    bio = models.TextField(
+        'биография',
+        blank=True,
+    )
+    first_name = models.CharField('имя', max_length=150, blank=True)
+    last_name = models.CharField('фамилия', max_length=150, blank=True)
     confirmation_code = models.CharField(
-        "код подтверждения",
+        'код подтверждения',
         max_length=255,
         null=True,
         blank=False,
-        default="XXXX",
+        default='XXXX',
     )
 
     def validate_confirmation_code(self, value):
         if value != self.confirmation_code:
-            raise ValidationError("Неверный код подтверждения!")
+            raise ValidationError('Неверный код подтверждения!')
 
     @property
     def is_user(self):
@@ -67,9 +70,9 @@ class User(AbstractUser):
         return self.role == MODERATOR
 
     class Meta:
-        ordering = ("-id",)
-        verbose_name = "Пользователь"
-        verbose_name_plural = "Пользователи"
+        ordering = ('-id',)
+        verbose_name = 'пользователь'
+        verbose_name_plural = 'пользователи'
 
     def __str__(self):
         return self.username
@@ -128,16 +131,16 @@ class Review(models.Model):
     author = author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        verbose_name='Автор',
+        verbose_name='автор',
     )
-    text = models.TextField(verbose_name='Текст')
+    text = models.TextField(verbose_name='текст')
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
-        verbose_name='Произведение',
+        verbose_name='произведение',
     )
     score = models.IntegerField(
-        verbose_name='Оценка',
+        verbose_name='оценка',
         default=1,
         validators=[
             MaxValueValidator(10),
@@ -145,7 +148,7 @@ class Review(models.Model):
         ],
     )
     created = models.DateTimeField(
-        'Дата добавления',
+        'дата добавления',
         auto_now_add=True,
         db_index=True,
     )
@@ -153,23 +156,24 @@ class Review(models.Model):
     class Meta:
         ordering = ['-created']
         default_related_name = 'reviews'
-        verbose_name_plural = 'Отзывы'
+        verbose_name = 'отзыв'
+        verbose_name_plural = 'отзывы'
 
 
 class Comment(models.Model):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        verbose_name='Автор',
+        verbose_name='автор',
     )
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
-        verbose_name='Ревью',
+        verbose_name='ревью',
     )
-    text = models.TextField(verbose_name='Текст')
+    text = models.TextField(verbose_name='текст')
     created = models.DateTimeField(
-        'Дата добавления',
+        'дата добавления',
         auto_now_add=True,
         db_index=True,
     )
@@ -177,4 +181,5 @@ class Comment(models.Model):
     class Meta:
         ordering = ['-created']
         default_related_name = 'comments'
-        verbose_name_plural = 'Комментарии'
+        verbose_name = 'комментарий'
+        verbose_name_plural = 'комментарии'

@@ -1,28 +1,36 @@
 import uuid
 
-from django.core.mail import EmailMessage
 from django.core.exceptions import PermissionDenied
+from django.core.mail import EmailMessage
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, mixins, viewsets, status
-from rest_framework.pagination import PageNumberPagination, LimitOffsetPagination
-from rest_framework.permissions import AllowAny, IsAuthenticated, AdminOnly
+from rest_framework import filters, mixins, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.filters import SearchFilter
+from rest_framework.pagination import (
+    LimitOffsetPagination,
+    PageNumberPagination,
+)
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.filters import SearchFilter
-from rest_framework.decorators import action
-from rest_framework.exceptions import AuthenticationFailed
 
+from api.permissions import (
+    AdminModeratorAuthorPermission,
+    AdminOnly,
+    IsAdminUserOrReadOnly,
+)
 from api.serializers import (
     CategorySerializer,
     CommentSerializer,
     GenreSerializer,
+    GetTokenSerializer,
     ReviewSerializer,
+    SignUpSerializer,
     TitleReadOnlySerializer,
     TitleSerializer,
-    GetTokenSerializer,
-    SignUpSerializer,
     UserSerializer,
 )
 from reviews.models import Category, Genre, Review, Title, User
@@ -33,27 +41,27 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     pagination_class = LimitOffsetPagination
     permission_classes = [IsAuthenticated, AdminOnly]
-    lookup_field = "username"
+    lookup_field = 'username'
     filter_backends = [SearchFilter]
-    search_fields = ["username"]
+    search_fields = ['username']
     http_method_names = [
-        "get",
-        "post",
-        "patch",
-        "delete",
+        'get',
+        'post',
+        'patch',
+        'delete',
     ]
 
     @action(
-        methods=["get", "patch"],
+        methods=['get', 'patch'],
         detail=False,
         permission_classes=[IsAuthenticated],
     )
     def me(self, request):
         serializer = UserSerializer(request.user)
-        if request.method == "PATCH":
+        if request.method == 'PATCH':
             data = request.data.copy()
-            if "role" in data:
-                del data["role"]  # Remove the 'role' key from the data
+            if 'role' in data:
+                del data['role']  # Remove the 'role' key from the data
             serializer = UserSerializer(request.user, data=data, partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save()
@@ -66,22 +74,22 @@ class APIGetToken(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
         try:
-            user = User.objects.get(username=data["username"])
+            user = User.objects.get(username=data['username'])
         except User.DoesNotExist:
             return Response(
-                {"username": "Пользователь не найден!"},
+                {'username': 'Пользователь не найден!'},
                 status=status.HTTP_404_NOT_FOUND,
             )
-        if not data.get("confirmation_code"):
+        if not data.get('confirmation_code'):
             return Response(
-                {"confirmation_code": "Код подтверждения обязателен!"},
+                {'confirmation_code': 'Код подтверждения обязателен!'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        if data["confirmation_code"] != user.confirmation_code:
-            raise AuthenticationFailed("Неверный код подтверждения!")
+        if data['confirmation_code'] != user.confirmation_code:
+            raise AuthenticationFailed('Неверный код подтверждения!')
 
         token = RefreshToken.for_user(user).access_token
-        return Response({"token": str(token)}, status=status.HTTP_201_CREATED)
+        return Response({'token': str(token)}, status=status.HTTP_201_CREATED)
 
 
 class APISignup(APIView):
@@ -90,28 +98,28 @@ class APISignup(APIView):
     def post(self, request):
         serializer = SignUpSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        username = serializer.validated_data["username"]
+        username = serializer.validated_data['username']
         confirmation_code = str(
-            uuid.uuid3(uuid.NAMESPACE_DNS, username)
-        )  # Генерируем код подтверждения
+            uuid.uuid3(uuid.NAMESPACE_DNS, username),
+        )
         try:
             user, created = User.objects.get_or_create(
-                **serializer.validated_data
+                **serializer.validated_data,
             )
         except Exception as error:
             return Response(
-                f"Ошибка {error}",
-                status=status.HTTP_400_BAD_REQUEST
+                f'Ошибка {error}',
+                status=status.HTTP_400_BAD_REQUEST,
             )
         confirmation_code = confirmation_code
         user.save()
         email_body = (
-            f"Здравствуйте, {user.username}."
-            f"\nКод подтверждения для доступа к API: \
-            {user.confirmation_code}"
+            f'Здравствуйте, {user.username}.'
+            f'\nКод подтверждения для доступа к API: \
+            {user.confirmation_code}'
         )
         email = EmailMessage(
-            subject="Код подтверждения для доступа к API!",
+            subject='Код подтверждения для доступа к API!',
             body=email_body,
             to=[user.email],
         )
@@ -131,6 +139,7 @@ class CreateListDestroyViewSet(
 class CategoryCreateListDestroyViewSet(CreateListDestroyViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    permission_classes = (IsAdminUserOrReadOnly,)
     pagination_class = PageNumberPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
@@ -140,6 +149,7 @@ class CategoryCreateListDestroyViewSet(CreateListDestroyViewSet):
 class GenreCreateListDestroyViewSet(CreateListDestroyViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
+    permission_classes = (IsAdminUserOrReadOnly,)
     pagination_class = PageNumberPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
@@ -148,6 +158,7 @@ class GenreCreateListDestroyViewSet(CreateListDestroyViewSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
+    permission_classes = (IsAdminUserOrReadOnly,)
     pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
@@ -160,6 +171,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
+    permission_classes = (AdminModeratorAuthorPermission,)
 
     @property
     def title(self):
@@ -187,6 +199,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
+    permission_classes = (AdminModeratorAuthorPermission,)
 
     @property
     def review_for_comment(self):
