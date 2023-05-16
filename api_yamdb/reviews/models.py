@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 User = get_user_model()
 
@@ -14,6 +15,15 @@ class Review(models.Model):
         Title,
         on_delete=models.CASCADE,
         verbose_name='Произведение'
+    )
+    score = models.IntegerField(
+        max_digits=2,
+        verbose_name='Оценка',
+        default=1,
+        validators=[
+            MaxValueValidator(10),
+            MinValueValidator(1)
+        ]
     )
     created = models.DateTimeField(
         'Дата добавления', auto_now_add=True, db_index=True
