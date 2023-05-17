@@ -184,16 +184,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
             title=self.title,
         )
 
-    def perform_update(self, serializer):
-        if serializer.instance.author != self.request.user:
-            raise PermissionDenied('Запрещено изменение чужого контента')
-        super().perform_update(serializer)
-
-    def perform_destroy(self, instance):
-        if instance.author != self.request.user:
-            raise PermissionDenied('Запрещено удаление чужого контента')
-        super().perform_destroy(instance)
-
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
@@ -211,13 +201,3 @@ class CommentViewSet(viewsets.ModelViewSet):
             author=self.request.user,
             review=self.review_for_comment,
         )
-
-    def perform_update(self, serializer):
-        if serializer.instance.author != self.request.user:
-            raise PermissionDenied('Запрещено изменение чужого контента')
-        super().perform_update(serializer)
-
-    def perform_destroy(self, instance):
-        if instance.author != self.request.user:
-            raise PermissionDenied('Запрещено удаление чужого контента')
-        super().perform_destroy(instance)

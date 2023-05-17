@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models.constraints import UniqueConstraint
+from django.db.models.constraints import CheckConstraint
 from rest_framework.exceptions import ValidationError
 
 from .validators import validate_username
@@ -147,39 +149,48 @@ class Review(models.Model):
             MinValueValidator(1),
         ],
     )
-    created = models.DateTimeField(
-        'дата добавления',
+    pub_date = models.DateTimeField(
+        verbose_name='Дата публикации',
         auto_now_add=True,
         db_index=True,
     )
 
     class Meta:
-        ordering = ['-created']
+        ordering = ['-pub_date']
         default_related_name = 'reviews'
-        verbose_name = 'отзыв'
-        verbose_name_plural = 'отзывы'
+        verbose_name = 'Отзыв'
+        verbose_name_plural = 'Отзывы'
+        constraints = (
+            models.UniqueConstraint(
+                fields=['author', 'title'],
+                name='unique_author_title'
+            ),
+        )
+
+    def __str__(self):
+        return self.text
 
 
 class Comment(models.Model):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        verbose_name='автор',
+        verbose_name='Автор',
     )
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
-        verbose_name='ревью',
+        verbose_name='Ревью',
     )
     text = models.TextField(verbose_name='текст')
-    created = models.DateTimeField(
-        'дата добавления',
+    pub_date = models.DateTimeField(
+        verbose_name='Дата публикации',
         auto_now_add=True,
         db_index=True,
     )
 
     class Meta:
-        ordering = ['-created']
+        ordering = ['-pub_date']
         default_related_name = 'comments'
-        verbose_name = 'комментарий'
-        verbose_name_plural = 'комментарии'
+        verbose_name = 'Комментарий'
+        verbose_name_plural = 'Комментарии'
