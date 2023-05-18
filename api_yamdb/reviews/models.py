@@ -3,7 +3,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from rest_framework.exceptions import ValidationError
 
-from .validators import validate_username
+from reviews.validators import validate_username
 
 USER = 'user'
 ADMIN = 'admin'
