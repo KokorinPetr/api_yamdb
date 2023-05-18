@@ -1,8 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models.constraints import UniqueConstraint
-from django.db.models.constraints import CheckConstraint
 from rest_framework.exceptions import ValidationError
 
 from .validators import validate_username
@@ -160,7 +158,7 @@ class Review(models.Model):
         constraints = (
             models.UniqueConstraint(
                 fields=['author', 'title'],
-                name='unique_author_title'
+                name='unique_author_title',
             ),
         )
 

@@ -1,8 +1,8 @@
 from datetime import datetime
 
 from django.db.models import Avg
-from rest_framework import serializers
 from django.shortcuts import get_object_or_404
+from rest_framework import serializers
 
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
@@ -35,19 +35,23 @@ class NotAdminSerializer(serializers.ModelSerializer):
 
 
 class SignUpSerializer(serializers.Serializer):
-    username = serializers.RegexField(max_length=150,
-                                      regex=r'^[\w.@+-]+\Z', required=True)
+    username = serializers.RegexField(
+        max_length=150,
+        regex=r'^[\w.@+-]+\Z',
+        required=True,
+    )
     email = serializers.EmailField(max_length=254)
 
     def create(self, validated_data):
         return User.objects.create_user(
-            username=validated_data['username'], email=validated_data['email']
+            username=validated_data['username'],
+            email=validated_data['email'],
         )
 
     def validate_username(self, username):
         if username == 'me':
             raise serializers.ValidationError(
-                'Использование "me" в качестве username нельзя.'
+                'Использование "me" в качестве username нельзя.',
             )
         return username
 
@@ -56,7 +60,7 @@ class SignUpSerializer(serializers.Serializer):
             user = get_object_or_404(User, email=email)
             if self.initial_data.get('username') != user.username:
                 raise serializers.ValidationError(
-                    'Указана почта существующего пользователя!'
+                    'Указана почта существующего пользователя!',
                 )
         return email
 
@@ -145,12 +149,11 @@ class ReviewSerializer(serializers.ModelSerializer):
         if self.context['request'].method != 'POST':
             return data
         user = self.context['request'].user
-        title_id = (
-            self.context['request'].parser_context['kwargs']['title_id']
-        )
+        title_id = self.context['request'].parser_context['kwargs']['title_id']
         if Review.objects.filter(author=user, title__id=title_id).exists():
             raise serializers.ValidationError(
-                "Вы уже оставили отзыв на данное произведение")
+                'Вы уже оставили отзыв на данное произведение',
+            )
         return data
 
 

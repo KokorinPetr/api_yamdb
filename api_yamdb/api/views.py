@@ -1,6 +1,5 @@
 import uuid
 
-from django.core.exceptions import PermissionDenied
 from django.core.mail import EmailMessage
 from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
@@ -108,25 +107,27 @@ class APISignup(APIView):
         if User.objects.filter(email=email).exists():
             return Response(
                 {'message': 'Пользователь с таким email уже существует'},
-                status=status.HTTP_200_OK
+                status=status.HTTP_200_OK,
             )
         try:
             user = serializer.save()
         except IntegrityError:
             return Response(
                 {'message': 'Пользователь с такими данными уже существует'},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         user.confirmation_code = confirmation_code
         user.save()
         email_body = (
             f'Здравствуйте, {user.username}.'
-            f'\nКод подтверждения для доступа к API: {user.confirmation_code}')
+            f'\nКод подтверждения для доступа к API: {user.confirmation_code}'
+        )
         email = EmailMessage(
             subject='Код подтверждения для доступа к API!',
             body=email_body,
-            to=[user.email],)
+            to=[user.email],
+        )
         email.send()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -137,27 +138,21 @@ class CreateListDestroyViewSet(
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
 ):
-    pass
+    permission_classes = (IsAdminUserOrReadOnly,)
+    pagination_class = LimitOffsetPagination
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+    lookup_field = 'slug'
 
 
 class CategoryCreateListDestroyViewSet(CreateListDestroyViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (IsAdminUserOrReadOnly,)
-    pagination_class = LimitOffsetPagination
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
-    lookup_field = 'slug'
 
 
 class GenreCreateListDestroyViewSet(CreateListDestroyViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = (IsAdminUserOrReadOnly,)
-    pagination_class = LimitOffsetPagination
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
-    lookup_field = 'slug'
 
 
 class TitleViewSet(viewsets.ModelViewSet):

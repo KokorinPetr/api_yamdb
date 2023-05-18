@@ -11,3 +11,6 @@ style:
 
 shell:
 	$(MANAGE) shell
+
+import:
+	$(MANAGE) importcsv
