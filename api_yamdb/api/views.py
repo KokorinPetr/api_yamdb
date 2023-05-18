@@ -23,27 +23,27 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     pagination_class = LimitOffsetPagination
     permission_classes = [IsAuthenticated, AdminOnly]
-    lookup_field = "username"
+    lookup_field = 'username'
     filter_backends = [SearchFilter]
-    search_fields = ["username"]
+    search_fields = ['username']
     http_method_names = [
-        "get",
-        "post",
-        "patch",
-        "delete",
+        'get',
+        'post',
+        'patch',
+        'delete',
     ]
 
     @action(
-        methods=["get", "patch"],
+        methods=['get', 'patch'],
         detail=False,
         permission_classes=[IsAuthenticated],
     )
     def me(self, request):
         serializer = UserSerializer(request.user)
-        if request.method == "PATCH":
+        if request.method == 'PATCH':
             data = request.data.copy()
-            if "role" in data:
-                del data["role"]
+            if 'role' in data:
+                del data['role']
             serializer = UserSerializer(request.user, data=data, partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save()
@@ -54,20 +54,20 @@ class APIGetToken(APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request):
-        username = request.data.get("username")
-        confirmation_code = request.data.get("confirmation_code")
+        username = request.data.get('username')
+        confirmation_code = request.data.get('confirmation_code')
         if not username:
             return Response(
-                {"username": "Имя пользователя обязательно!"},
+                {'username': 'Имя пользователя обязательно!'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
             user = User.objects.get(username=username)
         except User.DoesNotExist:
-            raise NotFound(detail="Пользователь не найден!")
+            raise NotFound(detail='Пользователь не найден!')
         if not confirmation_code:
             return Response(
-                {"confirmation_code": "Код подтверждения обязателен!"},
+                {'confirmation_code': 'Код подтверждения обязателен!'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         if confirmation_code != user.confirmation_code:
@@ -75,7 +75,7 @@ class APIGetToken(APIView):
         serializer = GetTokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         token = RefreshToken.for_user(user).access_token
-        return Response({"token": str(token)}, status=status.HTTP_200_OK)
+        return Response({'token': str(token)}, status=status.HTTP_200_OK)
 
 
 class APISignup(APIView):
@@ -84,13 +84,13 @@ class APISignup(APIView):
     def post(self, request):
         serializer = SignUpSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        username = serializer.validated_data["username"]
-        email = serializer.validated_data["email"]
+        username = serializer.validated_data['username']
+        email = serializer.validated_data['email']
         confirmation_code = str(uuid.uuid3(uuid.NAMESPACE_DNS, username))
 
         if User.objects.filter(email=email).exists():
             return Response(
-                {"message": "Пользователь с таким email уже существует"},
+                {'message': 'Пользователь с таким email уже существует'},
                 status=status.HTTP_200_OK
             )
 
@@ -98,17 +98,17 @@ class APISignup(APIView):
             user = serializer.save()
         except IntegrityError:
             return Response(
-                {"message": "Пользователь с такими данными уже существует"},
+                {'message': 'Пользователь с такими данными уже существует'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
         user.confirmation_code = confirmation_code
         user.save()
         email_body = (
-            f"Здравствуйте, {user.username}."
-            f"\nКод подтверждения для доступа к API: {user.confirmation_code}")
+            f'Здравствуйте, {user.username}.'
+            f'\nКод подтверждения для доступа к API: {user.confirmation_code}')
         email = EmailMessage(
-            subject="Код подтверждения для доступа к API!",
+            subject='Код подтверждения для доступа к API!',
             body=email_body,
             to=[user.email],)
         email.send()

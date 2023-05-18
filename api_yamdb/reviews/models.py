@@ -4,9 +4,9 @@ from rest_framework.exceptions import ValidationError
 
 from .validators import validate_username
 
-USER = "user"
-ADMIN = "admin"
-MODERATOR = "moderator"
+USER = 'user'
+ADMIN = 'admin'
+MODERATOR = 'moderator'
 ROLE_CHOICES = [
     (USER, USER),
     (ADMIN, ADMIN),
@@ -31,22 +31,22 @@ class User(AbstractUser):
         db_index=True,
     )
     role = models.CharField(
-        "роль", max_length=20, choices=ROLE_CHOICES, default=USER, blank=True
+        'роль', max_length=20, choices=ROLE_CHOICES, default=USER, blank=True
     )
-    bio = models.TextField("биография", blank=True)
-    first_name = models.CharField("имя", max_length=150, blank=True)
-    last_name = models.CharField("фамилия", max_length=150, blank=True)
+    bio = models.TextField('биография', blank=True)
+    first_name = models.CharField('имя', max_length=150, blank=True)
+    last_name = models.CharField('фамилия', max_length=150, blank=True)
     confirmation_code = models.CharField(
-        "код подтверждения",
+        'код подтверждения',
         max_length=255,
         null=True,
         blank=False,
-        default="XXXX",
+        default='XXXX',
     )
 
     def validate_confirmation_code(self, value):
         if value != self.confirmation_code:
-            raise ValidationError("Неверный код подтверждения!")
+            raise ValidationError('Неверный код подтверждения!')
 
     @property
     def is_user(self):
@@ -61,9 +61,9 @@ class User(AbstractUser):
         return self.role == MODERATOR
 
     class Meta:
-        ordering = ("-id",)
-        verbose_name = "Пользователь"
-        verbose_name_plural = "Пользователи"
+        ordering = ('-id',)
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
 
     def __str__(self):
         return self.username
