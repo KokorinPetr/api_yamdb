@@ -7,7 +7,6 @@ from .validators import validate_username
 USER = "user"
 ADMIN = "admin"
 MODERATOR = "moderator"
-
 ROLE_CHOICES = [
     (USER, USER),
     (ADMIN, ADMIN),
@@ -34,10 +33,7 @@ class User(AbstractUser):
     role = models.CharField(
         "роль", max_length=20, choices=ROLE_CHOICES, default=USER, blank=True
     )
-    bio = models.TextField(
-        "биография",
-        blank=True,
-    )
+    bio = models.TextField("биография", blank=True)
     first_name = models.CharField("имя", max_length=150, blank=True)
     last_name = models.CharField("фамилия", max_length=150, blank=True)
     confirmation_code = models.CharField(

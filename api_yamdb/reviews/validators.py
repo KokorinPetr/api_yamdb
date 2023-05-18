@@ -11,5 +11,5 @@ def validate_username(value):
     if not re.search(r"^[a-zA-Z][a-zA-Z0-9-_\.]{1,20}$", value):
         raise ValidationError(
             f"Не допустимые символы <{value}> в имени.",
-            params={"value": value}
+            params={"value": value},
         )
