@@ -9,6 +9,7 @@ USER = 'user'
 ADMIN = 'admin'
 MODERATOR = 'moderator'
 MAX_LENGTH = 256
+MAX_LENGTH_NAME = 150
 
 ROLE_CHOICES = [
     (USER, USER),
@@ -22,15 +23,11 @@ class User(AbstractUser):
         validators=(validate_username,),
         max_length=150,
         unique=True,
-        blank=False,
-        null=False,
         db_index=True,
     )
     email = models.EmailField(
         max_length=254,
         unique=True,
-        blank=False,
-        null=False,
         db_index=True,
     )
     role = models.CharField(
@@ -41,8 +38,8 @@ class User(AbstractUser):
         blank=True,
     )
     bio = models.TextField('биография', blank=True)
-    first_name = models.CharField('имя', max_length=150, blank=True)
-    last_name = models.CharField('фамилия', max_length=150, blank=True)
+    first_name = models.CharField('имя', max_length=MAX_LENGTH_NAME, blank=True)
+    last_name = models.CharField('фамилия', max_length=MAX_LENGTH_NAME, blank=True)
     confirmation_code = models.CharField(
         'код подтверждения',
         max_length=255,
@@ -68,7 +65,7 @@ class User(AbstractUser):
         return self.role == MODERATOR
 
     class Meta:
-        ordering = ('-id',)
+        ordering = ('username',)
         verbose_name = 'пользователь'
         verbose_name_plural = 'пользователи'
 

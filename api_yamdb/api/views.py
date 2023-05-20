@@ -53,9 +53,13 @@ class UserViewSet(viewsets.ModelViewSet):
         methods=['get', 'patch'],
         detail=False,
         permission_classes=[IsAuthenticated],
+        url_path='me'
     )
-    def me(self, request):
-        serializer = UserSerializer(request.user)
+    def my_profile(self, request):
+        if request.method == 'GET':
+            serializer = UserSerializer(request.user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
         if request.method == 'PATCH':
             data = request.data.copy()
             if 'role' in data:
@@ -63,7 +67,7 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer = UserSerializer(request.user, data=data, partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class APIGetToken(APIView):
@@ -78,7 +82,7 @@ class APIGetToken(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
-            user = User.objects.get(username=username)
+            user = get_object_or_404(User, username=username)
         except User.DoesNotExist:
             raise NotFound(detail='Пользователь не найден!')
         if not confirmation_code:
