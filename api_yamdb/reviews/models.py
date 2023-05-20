@@ -19,15 +19,11 @@ class User(AbstractUser):
         validators=(validate_username,),
         max_length=150,
         unique=True,
-        blank=False,
-        null=False,
         db_index=True,
     )
     email = models.EmailField(
         max_length=254,
         unique=True,
-        blank=False,
-        null=False,
         db_index=True,
     )
     role = models.CharField(
@@ -40,7 +36,6 @@ class User(AbstractUser):
         'код подтверждения',
         max_length=255,
         null=True,
-        blank=False,
         default='XXXX',
     )
 
@@ -60,8 +55,10 @@ class User(AbstractUser):
     def is_moderator(self):
         return self.role == MODERATOR
 
+    FIRST_NAME_FIELD = 'first_name'
+
     class Meta:
-        ordering = ('-id',)
+        ordering = ('username',)
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
 
