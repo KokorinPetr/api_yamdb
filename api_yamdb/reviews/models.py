@@ -38,8 +38,16 @@ class User(AbstractUser):
         blank=True,
     )
     bio = models.TextField('биография', blank=True)
-    first_name = models.CharField('имя', max_length=MAX_LENGTH_NAME, blank=True)
-    last_name = models.CharField('фамилия', max_length=MAX_LENGTH_NAME, blank=True)
+    first_name = models.CharField(
+        'имя',
+        max_length=MAX_LENGTH_NAME,
+        blank=True
+    )
+    last_name = models.CharField(
+        'фамилия',
+        max_length=MAX_LENGTH_NAME,
+        blank=True
+    )
     confirmation_code = models.CharField(
         'код подтверждения',
         max_length=255,
@@ -116,7 +124,7 @@ class Title(models.Model):
     )
 
     class Meta:
-        ordering = ('-year','name')
+        ordering = ('-year', 'name')
         default_related_name = 'titles'
         verbose_name = 'произведение'
         verbose_name_plural = 'произведения'
