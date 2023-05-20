@@ -112,15 +112,10 @@ SIMPLE_JWT = {
 }
 
 EMAIL_HOST = 'smtp.mail.com'
-
 EMAIL_HOST_USER = 'agrelov882@mail.ru'
-
 EMAIL_HOST_PASSWORD = '55Dlyavpn55'
-
 EMAIL_PORT = 587
-
 EMAIL_USE_TLS = True
-
 EMAIL_USE_SSL = False
 
 AUTH_USER_MODEL = 'reviews.User'

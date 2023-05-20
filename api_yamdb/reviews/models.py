@@ -8,6 +8,7 @@ from reviews.validators import validate_username
 USER = 'user'
 ADMIN = 'admin'
 MODERATOR = 'moderator'
+MAX_LENGTH = 256
 
 ROLE_CHOICES = [
     (USER, USER),
@@ -76,10 +77,11 @@ class User(AbstractUser):
 
 
 class Category(models.Model):
-    name = models.CharField('название', max_length=256)
+    name = models.CharField('название', max_length=MAX_LENGTH)
     slug = models.SlugField('ключ', unique=True)
 
     class Meta:
+        ordering = ('name',)
         verbose_name = 'категория'
         verbose_name_plural = 'категории'
 
@@ -88,10 +90,11 @@ class Category(models.Model):
 
 
 class Genre(models.Model):
-    name = models.CharField('название', max_length=256)
+    name = models.CharField('название', max_length=MAX_LENGTH)
     slug = models.SlugField('ключ', unique=True)
 
     class Meta:
+        ordering = ('name',)
         verbose_name = 'жанр'
         verbose_name_plural = 'жанры'
 
@@ -100,12 +103,11 @@ class Genre(models.Model):
 
 
 class Title(models.Model):
-    name = models.CharField('название произведения', max_length=256)
+    name = models.CharField('название произведения', max_length=MAX_LENGTH)
     year = models.IntegerField('год выпуска')
     description = models.TextField('описание', blank=True)
     genre = models.ManyToManyField(
         Genre,
-        related_name='titles',
         verbose_name='ключ жанра',
     )
     category = models.ForeignKey(
@@ -117,6 +119,8 @@ class Title(models.Model):
     )
 
     class Meta:
+        ordering = ('-year','name')
+        default_related_name = 'titles'
         verbose_name = 'произведение'
         verbose_name_plural = 'произведения'
 
@@ -138,7 +142,7 @@ class Review(models.Model):
     )
     score = models.IntegerField(
         verbose_name='оценка',
-        default=1,
+        default=5,
         validators=[
             MaxValueValidator(10),
             MinValueValidator(1),
