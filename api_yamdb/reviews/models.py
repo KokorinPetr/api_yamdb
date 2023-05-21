@@ -5,11 +5,11 @@ from rest_framework.exceptions import ValidationError
 
 from reviews.validators import validate_username
 
+from api_yamdb.settings import MAX_LENGTH, MAX_LENGTH_NAME
+
 USER = 'user'
 ADMIN = 'admin'
 MODERATOR = 'moderator'
-MAX_LENGTH = 256
-MAX_LENGTH_NAME = 150
 
 ROLE_CHOICES = [
     (USER, USER),
@@ -147,7 +147,6 @@ class Review(models.Model):
     )
     score = models.IntegerField(
         verbose_name='оценка',
-        default=5,
         validators=[
             MaxValueValidator(10),
             MinValueValidator(1),

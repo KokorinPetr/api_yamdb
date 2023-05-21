@@ -4,9 +4,8 @@ from django.core.mail import EmailMessage
 from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, mixins, status, viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import NotFound
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -31,6 +30,7 @@ from api.serializers import (
     TitleSerializer,
     UserSerializer,
 )
+from api.mixins import CreateListDestroyViewSet
 from reviews.models import Category, Genre, Review, Title, User
 
 
@@ -59,15 +59,10 @@ class UserViewSet(viewsets.ModelViewSet):
         if request.method == 'GET':
             serializer = UserSerializer(request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
-
-        if request.method == 'PATCH':
-            data = request.data.copy()
-            if 'role' in data:
-                del data['role']
-            serializer = UserSerializer(request.user, data=data, partial=True)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = UserSerializer(request.user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class APIGetToken(APIView):
@@ -81,10 +76,7 @@ class APIGetToken(APIView):
                 {'username': 'Имя пользователя обязательно!'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        try:
-            user = get_object_or_404(User, username=username)
-        except User.DoesNotExist:
-            raise NotFound(detail='Пользователь не найден!')
+        user = get_object_or_404(User, username=username)
         if not confirmation_code:
             return Response(
                 {'confirmation_code': 'Код подтверждения обязателен!'},
@@ -107,14 +99,11 @@ class APISignup(APIView):
         username = serializer.validated_data['username']
         email = serializer.validated_data['email']
         confirmation_code = str(uuid.uuid3(uuid.NAMESPACE_DNS, username))
-
-        if User.objects.filter(email=email).exists():
-            return Response(
-                {'message': 'Пользователь с таким email уже существует'},
-                status=status.HTTP_200_OK,
-            )
         try:
-            user = serializer.save()
+            user, created = User.objects.get_or_create(
+                username=username,
+                email=email
+            )
         except IntegrityError:
             return Response(
                 {'message': 'Пользователь с такими данными уже существует'},
@@ -134,19 +123,6 @@ class APISignup(APIView):
         )
         email.send()
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-class CreateListDestroyViewSet(
-    mixins.CreateModelMixin,
-    mixins.ListModelMixin,
-    mixins.DestroyModelMixin,
-    viewsets.GenericViewSet,
-):
-    permission_classes = (IsAdminUserOrReadOnly,)
-    pagination_class = LimitOffsetPagination
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
-    lookup_field = 'slug'
 
 
 class CategoryCreateListDestroyViewSet(CreateListDestroyViewSet):
