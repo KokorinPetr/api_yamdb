@@ -18,6 +18,7 @@ class UserSerializer(serializers.ModelSerializer):
             'bio',
             'role',
         )
+
     def validate_role(self, role):
         """Запрещает пользователям изменять себе роль."""
         try:

@@ -5,6 +5,7 @@ from api.permissions import (
     IsAdminUserOrReadOnly,
 )
 
+
 class CreateListDestroyViewSet(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
